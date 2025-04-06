@@ -67,26 +67,25 @@ function draw(): void
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// grid
-	ctx.strokeStyle = "rgb(128, 128, 128)";
+	ctx.strokeStyle = "rgb(160, 160, 160)";
 	draw_cartesian_grid();
 
-	// points
-	ctx.fillStyle = "black";
+	// points and hexagons
+	ctx.strokeStyle = "rgb(64, 64, 64)";
 
 	for (let point of points) {
 		if (point == closest) {
 			ctx.fillStyle = "red";
 		} else {
 			ctx.fillStyle = "black";
+			draw_hexagon(point.x, point.y, Math.tan(Math.PI / 6) * side_length);
 		}
 
 		draw_point(point.x, point.y);
 	}
-	
-	// hexagon
-	ctx.strokeStyle = "green";
-	draw_hexagon(closest.x, closest.y, Math.tan(Math.PI / 6) * side_length);
 
+	ctx.strokeStyle = "red";
+	draw_hexagon(closest.x, closest.y, Math.tan(Math.PI / 6) * side_length);
 	requestAnimationFrame(draw);
 }
 
