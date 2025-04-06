@@ -34,33 +34,28 @@ function sqr_dst(a: Point, b: Point): number
 	return (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
 }
 
-// snaps a point to the nearest isometric grid point (rounding down)
-function isometry_snap(x: number, y: number): Point
+function isometry_nearest_even(x: number, y: number): Point
 {
-	let result_y = Math.floor(y / height);
-	let x_offset = Math.abs(result_y % 2) * 0.5;
-	let result_x = Math.floor(x / side_length - x_offset) + x_offset;
-	return { x: result_x * side_length, y: result_y * height};
+	let result_x = Math.round(x / side_length) * side_length;
+	let result_y = Math.round(y / (2 * height)) * 2 * height;
+
+	return { x: result_x, y: result_y };
+}
+
+function isometry_nearest_odd(x: number, y: number): Point
+{
+	let result_x = (Math.round(x / side_length - 0.5) + 0.5) * side_length;
+	let result_y = (Math.round(y / (2 * height) - 0.5) + 0.5) * 2 * height;
+
+	return { x: result_x, y: result_y };
 }
 
 function draw(): void
 {
-	// generate points
-	let points = [
-		isometry_snap(cursor.x, cursor.y),
-		isometry_snap(cursor.x + side_length, cursor.y),
-		isometry_snap(cursor.x, cursor.y + height),
-		isometry_snap(cursor.x + side_length, cursor.y + height)
-	];
+	let nearest_even = isometry_nearest_even(cursor.x, cursor.y);
+	let nearest_odd = isometry_nearest_odd(cursor.x, cursor.y);
 
-	let closest = points[0];
-
-	// find closest point to mouse position
-	for (let i = 1; i < 4; i++) {
-		if (sqr_dst(points[i], cursor) < sqr_dst(closest, cursor)) {
-			closest = points[i];
-		}
-	}
+	let closest = sqr_dst(nearest_even, cursor) < sqr_dst(nearest_odd, cursor) ? nearest_even : nearest_odd;
 
 	// background
 	ctx.fillStyle = "rgb(192, 192, 192)";
@@ -71,21 +66,21 @@ function draw(): void
 	draw_cartesian_grid();
 
 	// points and hexagons
+	ctx.fillStyle = "black";
 	ctx.strokeStyle = "rgb(64, 64, 64)";
 
-	for (let point of points) {
-		if (point == closest) {
-			ctx.fillStyle = "red";
-		} else {
-			ctx.fillStyle = "black";
-			draw_hexagon(point.x, point.y, Math.tan(Math.PI / 6) * side_length);
-		}
+	draw_point(nearest_even.x, nearest_even.y);
+	draw_point(nearest_odd.x, nearest_odd.y);
 
-		draw_point(point.x, point.y);
-	}
+	draw_hexagon(nearest_even.x, nearest_even.y, Math.tan(Math.PI / 6) * side_length);
+	draw_hexagon(nearest_odd.x, nearest_odd.y, Math.tan(Math.PI / 6) * side_length);
 
+	ctx.fillStyle = "red";
 	ctx.strokeStyle = "red";
+	
+	draw_point(closest.x, closest.y);
 	draw_hexagon(closest.x, closest.y, Math.tan(Math.PI / 6) * side_length);
+
 	requestAnimationFrame(draw);
 }
 
